@@ -1,0 +1,28 @@
+name: Run Python script daily
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # This cron schedule will run the script every day at midnight (UTC)
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt  # Make sure to include gspread, pandas, etc. in requirements.txt
+
+      - name: Run script
+        run: python your_script.py  # Replace 'your_script.py' with the name of your Python script
+        
+      - name: Commit results back to Google Sheets (optional)
+        # You can add extra steps if you need to push results back to GitHub or take other actions.
