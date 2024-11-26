@@ -1,0 +1,69 @@
+import pandas as pd
+import requests
+from io import StringIO
+
+# URL of the dataset
+url = "https://www.tesourotransparente.gov.br/ckan/dataset/f0468ecc-ae97-4287-89c2-6d8139fb4343/resource/e5f90e3a-8f8d-4895-9c56-4bb2f7877920/download/VendasTesouroDireto.csv"
+
+# Fetch the CSV file from the URL
+response = requests.get(url)
+if response.status_code == 200:
+    # Load the CSV data into a Pandas DataFrame
+    csv_data = StringIO(response.text)
+    df = pd.read_csv(csv_data, sep=";")  # Adjust the separator if necessary
+else:
+    print("Failed to fetch the data. Status code:", response.status_code)
+    exit()
+
+# Ensure the column names are stripped of any leading/trailing spaces
+df.columns = df.columns.str.strip()
+
+# Convert 'Data Venda' and 'Vencimento do Titulo' to datetime format
+df['Data Venda'] = pd.to_datetime(df['Data Venda'], format="%d/%m/%Y", errors='coerce')
+df['Vencimento do Titulo'] = pd.to_datetime(df['Vencimento do Titulo'], format="%d/%m/%Y", errors='coerce')
+
+# Drop rows with missing or invalid 'Data Venda'
+df = df.dropna(subset=['Data Venda', 'Vencimento do Titulo'])
+
+# Today's date
+today = pd.Timestamp.today()
+
+# Function to get closest row to today for a given set of filters
+def get_closest_row(titulo_filter, vencimento_filter):
+    filtered_df = df[
+        (df['Tipo Titulo'] == titulo_filter) &
+        (df['Vencimento do Titulo'].dt.year.isin(vencimento_filter))
+    ]
+
+    # Check if any rows match the filter
+    if filtered_df.empty:
+        print(f"No data found for {titulo_filter} with Vencimento {vencimento_filter}")
+        return None
+
+    # Sort by the closest 'Data Venda' to today
+    filtered_df['Date Difference'] = (filtered_df['Data Venda'] - today).abs()
+    closest_row = filtered_df.loc[filtered_df['Date Difference'].idxmin()]
+
+    # Drop the helper column 'Date Difference'
+    closest_row = closest_row.drop(columns=['Date Difference'])
+    
+    return closest_row
+
+# 1. Tesouro Selic / Vencimento contains: 2025, 2026, 2027
+selic_2025 = get_closest_row('Tesouro Selic', [2025])
+selic_2026 = get_closest_row('Tesouro Selic', [2026])
+selic_2027 = get_closest_row('Tesouro Selic', [2027])
+
+# 2. Tesouro Prefixado / Vencimento contains: 2027
+prefixado_2027 = get_closest_row('Tesouro Prefixado', [2027])
+
+# Display the results
+results = [selic_2025, selic_2026, selic_2027, prefixado_2027]
+
+# Filter out None results (in case no match was found)
+results = [res for res in results if res is not None]
+
+# Print out the results
+print("\nRows closest to today's date for the specified titles:")
+for result in results:
+    print(result)
