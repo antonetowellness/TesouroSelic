@@ -71,7 +71,11 @@ results = [res for res in results if res is not None]
 results_df = pd.DataFrame(results)
 
 # Google Sheets Authentication
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+scope = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"  # Optional, if needed
+]
+credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
 
 # Load credentials from GitHub secret (TS_CREDENTIALS)
 credentials_json = os.getenv("TS_CREDENTIALS")  # Get credentials from GitHub secret
