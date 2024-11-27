@@ -6,32 +6,28 @@ on:
   workflow_dispatch:  # Allows for manual trigger
 
 jobs:
-  update-google-sheets:
+  update-google-sheets:  # This must be indented under `jobs`
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout repository
-        uses: actions/checkout@v2  # Fetch the repository contents
+        uses: actions/checkout@v2
 
-      # Step 2: Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.x'  # Use a recent Python version
+          python-version: '3.10'  # Specify a compatible Python version
 
-      # Step 3: Install dependencies
-     - name: Install dependencies
-    run: |
-    pip install --upgrade pip
-    pip install --force-reinstall - requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
-      # Step 4: Set up Google Cloud credentials
       - name: Set up Google Cloud credentials
         run: echo "$TS_CREDENTIALS" > credentials.json
         env:
-          TS_CREDENTIALS: ${{ secrets.TS_CREDENTIALS }}  # Use the secret you added in GitHub
+          TS_CREDENTIALS: ${{ secrets.TS_CREDENTIALS }}
 
-      # Step 5: Run your Python script
       - name: Run Python script
-        run: python tesouro_transparente.py  # Replace 'tesouro_transparente.py' with the name of your Python script
+        run: python tesouro_transparente.py
+
