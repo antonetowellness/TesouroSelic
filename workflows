@@ -10,18 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout repository
       - name: Checkout repository
-        uses: actions/checkout@v2  # Fetch the repository contents
+        uses: actions/checkout@v2
 
+      # Set up Python
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'  # Use a recent Python version
 
+      # Install dependencies
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt  # Include dependencies like gspread, pandas, oauth2client
 
+      # Set up Google Cloud credentials from GitHub secrets
+      - name: Set up Google Cloud credentials
+        run: echo "$TS_CREDENTIALS" > credentials.json
+        env:
+          TS_CREDENTIALS: ${{ secrets.TS_CREDENTIALS }}  # Store your credentials in GitHub Secrets
+
+      # Run the Python script
       - name: Run Python script
-        run: python your_script.py  # Replace 'your_script.py' with the name of your script
+        run: python tesouro_transparente.py  # Replace with the name of your Python script
+
