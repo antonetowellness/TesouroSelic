@@ -30,3 +30,9 @@ jobs:
 
       - name: Run Python script
         run: python tesouro_transparente.py
+
+        - name: Debug TS_CREDENTIALS
+        run: echo "$TS_CREDENTIALS" | jq '.'
+        env:
+          TS_CREDENTIALS: ${{ secrets.TS_CREDENTIALS }}
+
