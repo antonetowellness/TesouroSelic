@@ -30,4 +30,3 @@ jobs:
 
       - name: Run Python script
         run: python tesouro_transparente.py
-
