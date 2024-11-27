@@ -3,11 +3,12 @@ import requests
 from io import StringIO
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import json
+import os
 
 # Google Sheets setup
 SPREADSHEET_ID = "1pkLXZNj0nf32gU1EFBD38Qa0-NpdQZ-_"
 SHEET_NAME = "SELIC historico"  # Change if your target sheet has a different name
-CREDENTIALS_FILE = "credentials.json"  # Ensure this file is in your repo
 
 # URL of the dataset
 url = "https://www.tesourotransparente.gov.br/ckan/dataset/f0468ecc-ae97-4287-89c2-6d8139fb4343/resource/e5f90e3a-8f8d-4895-9c56-4bb2f7877920/download/VendasTesouroDireto.csv"
@@ -71,7 +72,13 @@ results_df = pd.DataFrame(results)
 
 # Google Sheets Authentication
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
+
+# Load credentials from GitHub secret (TS_CREDENTIALS)
+credentials_json = os.getenv("TS_CREDENTIALS")  # Get credentials from GitHub secret
+
+# Load the credentials from the environment variable (as a string)
+credentials_info = json.loads(credentials_json)
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_info, scope)
 client = gspread.authorize(credentials)
 
 # Open the Google Sheet
