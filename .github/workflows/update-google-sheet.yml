@@ -34,4 +34,4 @@ jobs:
 
       # Step 5: Run your Python script
       - name: Run Python script
-        run: python your_script.py  # Replace 'your_script.py' with the name of your Python script
+        run: python tesouro_transparente.py  # Replace 'tesouro_transparente.py' with the name of your Python script
