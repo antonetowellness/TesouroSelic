@@ -1,28 +1,27 @@
-name: Run Python script daily
+name: Fetch and Update Google Sheet
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # This cron schedule will run the script every day at midnight (UTC)
+    - cron: '0 0 * * *'  # Runs daily at midnight UTC
+  workflow_dispatch:  # Allows for manual trigger
 
 jobs:
-  run-script:
+  update-google-sheets:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2  # Fetch the repository contents
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
+          python-version: '3.x'  # Use a recent Python version
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt  # Make sure to include gspread, pandas, etc. in requirements.txt
+          pip install -r requirements.txt  # Include dependencies like gspread, pandas, oauth2client
 
-      - name: Run script
-        run: python your_script.py  # Replace 'your_script.py' with the name of your Python script
-        
-      - name: Commit results back to Google Sheets (optional)
-        # You can add extra steps if you need to push results back to GitHub or take other actions.
+      - name: Run Python script
+        run: python your_script.py  # Replace 'your_script.py' with the name of your script
