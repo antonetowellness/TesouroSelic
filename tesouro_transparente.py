@@ -1,6 +1,13 @@
 import pandas as pd
 import requests
 from io import StringIO
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+# Google Sheets setup
+SPREADSHEET_ID = "1pkLXZNj0nf32gU1EFBD38Qa0-NpdQZ-_"
+SHEET_NAME = "SELIC historico"  # Change if your target sheet has a different name
+CREDENTIALS_FILE = "credentials.json"  # Ensure this file is in your repo
 
 # URL of the dataset
 url = "https://www.tesourotransparente.gov.br/ckan/dataset/f0468ecc-ae97-4287-89c2-6d8139fb4343/resource/e5f90e3a-8f8d-4895-9c56-4bb2f7877920/download/VendasTesouroDireto.csv"
@@ -45,25 +52,35 @@ def get_closest_row(titulo_filter, vencimento_filter):
     closest_row = filtered_df.loc[filtered_df['Date Difference'].idxmin()]
 
     # Drop the helper column 'Date Difference'
-    closest_row = closest_row.drop(columns=['Date Difference'])
+    closest_row = closest_row.drop(labels=['Date Difference'])
     
     return closest_row
 
-# 1. Tesouro Selic / Vencimento contains: 2025, 2026, 2027
+# Fetch closest rows for desired filters
 selic_2025 = get_closest_row('Tesouro Selic', [2025])
 selic_2026 = get_closest_row('Tesouro Selic', [2026])
 selic_2027 = get_closest_row('Tesouro Selic', [2027])
-
-# 2. Tesouro Prefixado / Vencimento contains: 2027
 prefixado_2027 = get_closest_row('Tesouro Prefixado', [2027])
 
-# Display the results
+# Collect results
 results = [selic_2025, selic_2026, selic_2027, prefixado_2027]
-
-# Filter out None results (in case no match was found)
 results = [res for res in results if res is not None]
 
-# Print out the results
-print("\nRows closest to today's date for the specified titles:")
-for result in results:
-    print(result)
+# Format results as a DataFrame
+results_df = pd.DataFrame(results)
+
+# Google Sheets Authentication
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+credentials = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
+client = gspread.authorize(credentials)
+
+# Open the Google Sheet
+sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
+
+# Clear existing data in the sheet
+sheet.clear()
+
+# Add the new data
+sheet.update([results_df.columns.values.tolist()] + results_df.values.tolist())
+
+print("Google Sheet updated successfully!")
