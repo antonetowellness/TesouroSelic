@@ -1,38 +1,32 @@
-name: Fetch and Update Google Sheet
+name: Debug Workflow Example
 
 on:
-  schedule:
-    - cron: '0 0 * * *'  # Runs daily at midnight UTC
-  workflow_dispatch:  # Allows for manual trigger
+  workflow_dispatch:
 
 jobs:
-  update-google-sheets:  # This must be indented under `jobs`
+  debug-job:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Specify a compatible Python version
+          python-version: 3.10
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install pandas requests gspread oauth2client
 
-      - name: Set up Google Cloud credentials
-        run: echo "$TS_CREDENTIALS" > credentials.json
+      - name: Debug
+        run: echo "$TS_CREDENTIALS" | jq '.'
         env:
           TS_CREDENTIALS: ${{ secrets.TS_CREDENTIALS }}
 
       - name: Run Python script
         run: python tesouro_transparente.py
-
-        - name: Debug TS_CREDENTIALS
-        run: echo "$TS_CREDENTIALS" | jq '.'
         env:
           TS_CREDENTIALS: ${{ secrets.TS_CREDENTIALS }}
-
