@@ -75,23 +75,36 @@ scope = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"  # Optional, if needed
 ]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
 
 # Load credentials from GitHub secret (TS_CREDENTIALS)
 credentials_json = os.getenv("TS_CREDENTIALS")  # Get credentials from GitHub secret
 
+# Ensure that the credentials JSON string is loaded properly
+if credentials_json is None:
+    print("Error: Credentials not found in GitHub Secrets.")
+    exit()
+
 # Load the credentials from the environment variable (as a string)
 credentials_info = json.loads(credentials_json)
 credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_info, scope)
+
+# Authorize and create a client to interact with Google Sheets
 client = gspread.authorize(credentials)
 
 # Open the Google Sheet
-sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
+try:
+    sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
+except gspread.exceptions.SpreadsheetNotFound as e:
+    print(f"Error: Unable to find the spreadsheet with ID {SPREADSHEET_ID}")
+    exit()
+except gspread.exceptions.WorksheetNotFound as e:
+    print(f"Error: Unable to find the worksheet {SHEET_NAME}")
+    exit()
 
 # Clear existing data in the sheet
 sheet.clear()
 
-# Add the new data
+# Add the new data (including column names and values)
 sheet.update([results_df.columns.values.tolist()] + results_df.values.tolist())
 
 print("Google Sheet updated successfully!")
