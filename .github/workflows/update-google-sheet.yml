@@ -1,10 +1,10 @@
-name: Debug Workflow Example
+name: Run Python Script for Tesouro Transparente
 
 on:
   workflow_dispatch:
 
 jobs:
-  debug-job:
+  run-python-script:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,11 +20,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pandas requests gspread oauth2client
-
-      - name: Debug
-        run: echo "$TS_CREDENTIALS" | jq '.'
-        env:
-          TS_CREDENTIALS: ${{ secrets.TS_CREDENTIALS }}
 
       - name: Run Python script
         run: python tesouro_transparente.py
